@@ -8,8 +8,8 @@
 name: OpenWrt-CI
 
 on:
-  schedule:
-    - cron: 0 9 * * *
+#  schedule:
+#    - cron: 0 9 * * *
   push:
     branches:
       - master
@@ -50,9 +50,114 @@ jobs:
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
+          sed -i '/uci commit luci/i\uci set luci.main.mediaurlbase="/luci-static/argon"' `find package -type f -path '*/default-settings/files/zzz-default-settings'`
+          
       - name: Generate configuration file
-        run: make defconfig
+        run: |
+          rm -f ./.config*
+          touch ./.config
+          cat >> .config <<EOF
+          #
+          # ========================固件定制部分========================
+          #
+          CONFIG_TARGET_x86=y
+          CONFIG_TARGET_x86_64=y
+          CONFIG_TARGET_x86_64_DEVICE_generic=y
+          CONFIG_KEEPALIVED_CHECKSUM_COMPAT=y
+          CONFIG_KEEPALIVED_FWMARK=y
+          CONFIG_KEEPALIVED_IPTABLES=y
+          CONFIG_KEEPALIVED_LINKBEAT=y
+          CONFIG_KEEPALIVED_LVS=y
+          CONFIG_KEEPALIVED_LVS_64BIT_STATS=y
+          CONFIG_KEEPALIVED_LVS_SYNCD=y
+          CONFIG_KEEPALIVED_ROUTES=y
+          CONFIG_KEEPALIVED_SHA1=y
+          CONFIG_KEEPALIVED_VRRP=y
+          CONFIG_KEEPALIVED_VRRP_AUTH=y
+          # CONFIG_PACKAGE_UnblockNeteaseMusic-Go is not set
+          # CONFIG_PACKAGE_adbyby is not set
+          # CONFIG_PACKAGE_blkid is not set
+          # CONFIG_PACKAGE_etherwake is not set
+          # CONFIG_PACKAGE_iptables-mod-ipsec is not set
+          CONFIG_PACKAGE_keepalived=y
+          # CONFIG_PACKAGE_kmod-crypto-cbc is not set
+          # CONFIG_PACKAGE_kmod-crypto-deflate is not set
+          # CONFIG_PACKAGE_kmod-crypto-des is not set
+          # CONFIG_PACKAGE_kmod-crypto-echainiv is not set
+          # CONFIG_PACKAGE_kmod-crypto-hmac is not set
+          # CONFIG_PACKAGE_kmod-crypto-kpp is not set
+          # CONFIG_PACKAGE_kmod-crypto-md5 is not set
+          # CONFIG_PACKAGE_kmod-ipsec is not set
+          # CONFIG_PACKAGE_kmod-ipt-ipsec is not set
+          # CONFIG_PACKAGE_kmod-iptunnel6 is not set
+          # CONFIG_PACKAGE_kmod-nf-conntrack-netlink is not set
+          # CONFIG_PACKAGE_kmod-shortcut-fe is not set
+          # CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set
+          # CONFIG_PACKAGE_kmod-tcp-bbr is not set
+          # CONFIG_PACKAGE_kmod-wireguard is not set
+          CONFIG_PACKAGE_libbz2=y
+          CONFIG_PACKAGE_liblzma=y
+          CONFIG_PACKAGE_libmagic=y
+          # CONFIG_PACKAGE_libminiupnpc is not set
+          # CONFIG_PACKAGE_libnatpmp is not set
+          CONFIG_PACKAGE_libnfnetlink=y
+          CONFIG_PACKAGE_libnl-core=y
+          CONFIG_PACKAGE_libnl-genl=y
+          CONFIG_PACKAGE_libnl-route=y
+          # CONFIG_PACKAGE_libparted is not set
+          # CONFIG_PACKAGE_libstdcpp is not set
+          # CONFIG_PACKAGE_libuv is not set
+          # CONFIG_PACKAGE_libwebsockets-full is not set
+          # CONFIG_PACKAGE_luci-app-accesscontrol is not set
+          # CONFIG_PACKAGE_luci-app-adbyby-plus is not set
+          # CONFIG_PACKAGE_luci-app-adguardhome_INCLUDE_binary is not set
+          # CONFIG_PACKAGE_luci-app-arpbind is not set
+          # CONFIG_PACKAGE_luci-app-autoreboot is not set
+          # CONFIG_PACKAGE_luci-app-ddns is not set
+          # CONFIG_PACKAGE_luci-app-diskman is not set
+          # CONFIG_PACKAGE_luci-app-filetransfer is not set
+          # CONFIG_PACKAGE_luci-app-ipsec-vpnd is not set
+          # CONFIG_PACKAGE_luci-app-nlbwmon is not set
+          # CONFIG_PACKAGE_luci-app-rclone_INCLUDE_rclone-ng is not set
+          # CONFIG_PACKAGE_luci-app-rclone_INCLUDE_rclone-webui is not set
+          # CONFIG_PACKAGE_luci-app-ttyd is not set
+          # CONFIG_PACKAGE_luci-app-turboacc is not set
+          # CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_BBR_CCA is not set
+          # CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_PDNSD is not set
+          # CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM is not set
+          # CONFIG_PACKAGE_luci-app-unblockmusic is not set
+          # CONFIG_PACKAGE_luci-app-unblockmusic_INCLUDE_UnblockNeteaseMusic_Go is not set
+          # CONFIG_PACKAGE_luci-app-upnp is not set
+          # CONFIG_PACKAGE_luci-app-vlmcsd is not set
+          # CONFIG_PACKAGE_luci-app-vsftpd is not set
+          # CONFIG_PACKAGE_luci-app-wireguard is not set
+          # CONFIG_PACKAGE_luci-app-wol is not set
+          # CONFIG_PACKAGE_luci-app-xlnetacc is not set
+          # CONFIG_PACKAGE_luci-app-zerotier is not set
+          # CONFIG_PACKAGE_luci-lib-fs is not set
+          # CONFIG_PACKAGE_luci-proto-wireguard is not set
+          CONFIG_PACKAGE_luci-theme-argon=y
+          # CONFIG_PACKAGE_miniupnpd is not set
+          # CONFIG_PACKAGE_nlbwmon is not set
+          # CONFIG_PACKAGE_parted is not set
+          # CONFIG_PACKAGE_pdnsd-alt is not set
+          # CONFIG_PACKAGE_smartmontools is not set
+          # CONFIG_PACKAGE_strongswan is not set
+          # CONFIG_PACKAGE_ttyd is not set
+          # CONFIG_PACKAGE_vlmcsd is not set
+          # CONFIG_PACKAGE_vsftpd-alt is not set
+          # CONFIG_PACKAGE_wireguard-tools is not set
+          # CONFIG_PACKAGE_wol is not set
+          # CONFIG_PACKAGE_zerotier is not set
+          # CONFIG_TARGET_IMAGES_GZIP is not set
+          CONFIG_TARGET_KERNEL_PARTSIZE=512
+          CONFIG_TARGET_ROOTFS_PARTSIZE=512
+          #
+          # ========================固件定制部分结束========================
+          #
+          EOF
+          sed -i 's/^[ \t]*//g' ./.config
+          make defconfig
 
       - name: Download packages
         run: make download -j16
